@@ -147,10 +147,11 @@ export const POST = async (request: Request, { params }: { params: { phoneNumber
     merged,
     updated,
   } = EVENT_TYPE;
-
+  console.log('REQUEST PARAMS', params);
   const data = await request.json();
+  console.log('REQUEST DATA', data);
   const eventType = request.headers.get('x-event-key');
-
+  console.log('REQUEST HEADERS', request.headers.entries());
   if (eventType) {
     switch (eventType) {
       case created: {
