@@ -173,3 +173,129 @@ export type EventKey =
   | 'pullrequest:fulfilled';
 
 export type ApprovalKey = 'changes_requested' | 'approved' | null;
+
+export type PullRequestGitlab = {
+  object_kind: string;
+  event_type: string;
+  user: User;
+  project: Project;
+  object_attributes: ObjectAttributes;
+  labels: unknown[];
+  changes: Changes;
+  repository: Repository;
+  reviewers: User[];
+};
+
+export type Changes = {
+  description: Description;
+  last_edited_at: Description;
+  last_edited_by_id: TedByID;
+  updated_at: Description;
+  updated_by_id: TedByID;
+};
+
+export type Description = {
+  previous: null | string;
+  current: string;
+};
+
+export type TedByID = {
+  previous: null;
+  current: number;
+};
+
+export type ObjectAttributes = {
+  assignee_id: null;
+  author_id: number;
+  created_at: string;
+  description: string;
+  draft: boolean;
+  head_pipeline_id: null;
+  id: number;
+  iid: number;
+  last_edited_at: string;
+  last_edited_by_id: number;
+  merge_commit_sha: null;
+  merge_error: null;
+  merge_params: MergeParams;
+  merge_status: string;
+  merge_user_id: null;
+  merge_when_pipeline_succeeds: boolean;
+  milestone_id: null;
+  source_branch: string;
+  source_project_id: number;
+  state_id: number;
+  target_branch: string;
+  target_project_id: number;
+  time_estimate: number;
+  title: string;
+  updated_at: string;
+  updated_by_id: number;
+  prepared_at: string;
+  assignee_ids: unknown[];
+  blocking_discussions_resolved: boolean;
+  detailed_merge_status: string;
+  first_contribution: boolean;
+  human_time_change: null;
+  human_time_estimate: null;
+  human_total_time_spent: null;
+  labels: unknown[];
+  last_commit: LastCommit;
+  reviewer_ids: number[];
+  source: Project;
+  state: string;
+  target: Project;
+  time_change: number;
+  total_time_spent: number;
+  url: string;
+  work_in_progress: boolean;
+  approval_rules: unknown[];
+  action: string;
+};
+
+export type LastCommit = {
+  id: string;
+  message: string;
+  title: string;
+  timestamp: Date;
+  url: string;
+  author: null[];
+};
+
+export type MergeParams = {
+  force_remove_source_branch: string;
+};
+
+export type ProjectGitlab = {
+  id: number;
+  name: string;
+  description: null;
+  web_url: string;
+  avatar_url: null;
+  git_ssh_url: string;
+  git_http_url: string;
+  namespace: string;
+  visibility_level: number;
+  path_with_namespace: string;
+  default_branch: string;
+  ci_config_path: string;
+  homepage: string;
+  url: string;
+  ssh_url: string;
+  http_url: string;
+};
+
+export type RepositoryGitlab = {
+  name: string;
+  url: string;
+  description: null;
+  homepage: string;
+};
+
+export type User = {
+  id: number;
+  name: string;
+  username: string;
+  avatar_url: string;
+  email: string;
+};

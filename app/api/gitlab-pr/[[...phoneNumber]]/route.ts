@@ -4,15 +4,20 @@ import {
   WA_TOKEN,
   WA_URL,
 } from './route.constants';
-import type { Account, PullRequestBase } from './route.types';
+import type { PullRequestGitlab, User } from './route.types';
 
 let phoneNumber = '';
 
-const getUserPhoneNumber = (data: Account) => {
+const getUserPhoneNumber = (data: User) => {
   console.log('ACCOUNT INFO', data);
-  const { account_id: accountId, display_name: displayName } = data;
+  const { id: accountId, name: displayName } = data;
   const foundUser = USER_MAP_LIST.find((el) => el.account_id === accountId);
   return foundUser ? `@${foundUser.phoneNumber}` : displayName;
+};
+
+const getUserPhoneNumberById = (userId: number) => {
+  const foundUser = USER_MAP_LIST.find((el) => el.account_id === userId);
+  return foundUser ? `@${foundUser.phoneNumber}` : '';
 };
 
 const sendMessage = async (message: string) => {
@@ -29,23 +34,19 @@ const sendMessage = async (message: string) => {
   });
 };
 
-const onCreatedPR = async (data: PullRequestBase) => {
+const onCreatedPR = async (data: PullRequestGitlab) => {
   console.log('MR CREATED', data);
   const {
-    pullrequest: {
-      author,
-      links: {
-        html: {
-          href: prLink,
-        },
-      },
-      id,
-      title,
-      reviewers,
-    },
     repository: {
       name: repositoryName,
     },
+    object_attributes: {
+      iid: id,
+      title,
+      url: prLink,
+    },
+    reviewers,
+    user: author,
   } = data || {};
   const message = `🆕 *${repositoryName}* PR #${id} created by ${getUserPhoneNumber(author)}
  
@@ -55,87 +56,78 @@ ${prLink}
   await sendMessage(message);
 };
 
-const onUpdatedPR = async (data: PullRequestBase) => {
+const onUpdatedPR = async (data: PullRequestGitlab) => {
   console.log('MR UPDATED', data);
   const {
-    pullrequest: {
-      links: {
-        html: {
-          href: prLink,
-        },
-      },
-      author,
-      id,
-      title,
-      reviewers,
-    },
     repository: {
       name: repositoryName,
     },
+    object_attributes: {
+      iid: id,
+      title,
+      url: prLink,
+      author_id: authorId,
+    },
+    reviewers,
   } = data || {};
+  const author = USER_MAP_LIST.find((el) => el.account_id === authorId);
   const message = `🆕 *${repositoryName}* PR #${id} updated
  
 ${title}
 ${prLink}
-*Author*: ${getUserPhoneNumber(author)}
+*Author*: ${author?.phoneNumber}
 *Reviewers*: ${reviewers.length > 0 ? reviewers.map((reviewer) => getUserPhoneNumber(reviewer)).join(', ') : 'None'}`;
   await sendMessage(message);
 };
 
-const onApproval = async (data: PullRequestBase) => {
+const onApproval = async (data: PullRequestGitlab) => {
   console.log('MR APPROVAL', data);
   const {
-    pullrequest: {
-      links: {
-        html: {
-          href: prLink,
-        },
-      },
-      author,
-      id,
-      title,
-      participants,
-      comment_count: commentCount = 0,
-    },
     repository: {
       name: repositoryName,
     },
+    object_attributes: {
+      iid: id,
+      title,
+      url: prLink,
+      author_id: authorId,
+    },
+    reviewers,
+    user,
   } = data || {};
+  const foundReviewer = reviewers.find((p) => p.id === user.id);
   const message = `✍🏻 *${repositoryName}* PR #${id} approval status update
  
 ${title}
 ${prLink}
-*Author*: ${getUserPhoneNumber(author)}
-*Approval Status*: ${participants.map((p) => (
-    `${getUserPhoneNumber(p.user)}${p.state === 'approved' ? ' ✅' : ''}${p.state === 'changes_requested' ? ' ⛔' : ''}`
-  )).join(', ')}
-*Comment Count*: ${commentCount}`;
+*Author*: ${getUserPhoneNumberById(authorId)}
+*Approval Status*: ${reviewers.map((p) => (
+    `${getUserPhoneNumber(p)}${foundReviewer?.id === p.id ? ' ✅' : ''}`
+  ))
+    .join(', ')}
+`;
   await sendMessage(message);
 };
 
-const onMergedPR = async (data: PullRequestBase) => {
+const onMergedPR = async (data: PullRequestGitlab) => {
   console.log('MR MERGED', data);
   const {
-    actor,
-    pullrequest: {
-      links: {
-        html: {
-          href: prLink,
-        },
-      },
-      author,
-      id,
-      title,
-    },
     repository: {
       name: repositoryName,
     },
+    object_attributes: {
+      iid: id,
+      title,
+      url: prLink,
+      author_id: authorId,
+    },
+    user: actor,
   } = data || {};
   const message = `🚀 *${repositoryName}* PR #${id} *merged* by ${getUserPhoneNumber(actor)}
  
 ${title}
 ${prLink}
-*Author*: ${getUserPhoneNumber(author)}`;
+*Author*: ${getUserPhoneNumberById(authorId)}`;
   await sendMessage(message);
 };
 
@@ -150,8 +142,8 @@ export const POST = async (request: Request, { params }: { params: { phoneNumber
   console.log('REQUEST PARAMS', params);
   const data = await request.json();
   console.log('REQUEST DATA', data);
-  const eventType = request.headers.get('x-event-key');
-  console.log('REQUEST HEADERS', request.headers.entries());
+  const eventType = request.headers.get('X-Gitlab-Event');
+  console.log('REQUEST HEADERS', eventType);
   if (eventType) {
     switch (eventType) {
       case created: {

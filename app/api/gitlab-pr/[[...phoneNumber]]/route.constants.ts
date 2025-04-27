@@ -15,13 +15,13 @@ export const WA_TOKEN = process.env.WA_TOKEN || '';
 export const USER_MAP_LIST = [
   {
     display_name: 'trdi. wrwn',
-    account_id: '557058:43bce807-9e43-40cc-a57e-0cc315502b0c',
+    account_id: 20077026,
     nickname: 'tri_',
     phoneNumber: '6282320018281',
   },
   {
     display_name: 'edi.teknikal',
-    account_id: '21712590',
+    account_id: 20077026,
     nickname: 'Edi Pramono',
     phoneNumber: '6282320018281',
   },
