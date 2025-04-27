@@ -13,7 +13,6 @@ const truncate = (
 ) => (value && value.length > length ? `${value.substring(0, length - 3)}...` : value);
 
 const getUserPhoneNumber = (data: User) => {
-  console.log('ACCOUNT INFO', data);
   const { id: accountId, name: displayName } = data || {};
   const foundUser = USER_MAP_LIST.find((el) => el.account_id === accountId);
   return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber}` : foundUser?.nickname || displayName;
@@ -25,7 +24,6 @@ const getUserPhoneNumberById = (userId: number) => {
 };
 
 const sendMessage = async (message: string) => {
-  console.log('SEND MESSAGE', message);
   const formData = new FormData();
   formData.append('phone', phoneNumber || PHONE_TARGET);
   formData.append('message', message);
@@ -39,7 +37,6 @@ const sendMessage = async (message: string) => {
 };
 
 const onCreatedPR = async (data: PullRequestGitlab) => {
-  console.log('MR CREATED', data);
   const {
     repository: {
       name: repositoryName,
@@ -61,7 +58,6 @@ const onCreatedPR = async (data: PullRequestGitlab) => {
 };
 
 const onUpdatedPR = async (data: PullRequestGitlab) => {
-  console.log('MR UPDATED', data);
   const {
     repository: {
       name: repositoryName,
@@ -85,7 +81,6 @@ const onUpdatedPR = async (data: PullRequestGitlab) => {
 };
 
 const onApproval = async (data: PullRequestGitlab) => {
-  console.log('MR APPROVAL', data);
   const {
     repository: {
       name: repositoryName,
@@ -97,26 +92,20 @@ const onApproval = async (data: PullRequestGitlab) => {
       author_id: authorId,
       action,
     },
-    reviewers = [],
-    user,
+    user: reviewer,
   } = data || {};
-  const foundReviewer = reviewers.find((p) => p.id === user.id);
   const isApproved = action === 'approved' || action === 'approval';
   const message = `✍🏻 *${repositoryName}* MR #${id} *approval* status update
 
 *Title*: ${title}
 *Url*: ${prLink}
 *Author*: ${getUserPhoneNumberById(authorId)}
-*Approval Status*: ${reviewers.map((p) => (
-    `${getUserPhoneNumber(p)}${foundReviewer?.id === p.id && isApproved ? ' ✅' : ' ⛔'}`
-  ))
-    .join(', ')}
+*Approval Status*: ${reviewer ? `${getUserPhoneNumber(reviewer)}${isApproved ? ' ✅' : ' ⛔'}` : ''}
 `;
   await sendMessage(message);
 };
 
 const onComment = async (data: PullRequestGitlab) => {
-  console.log('MR COMMENT', data);
   const {
     repository: {
       name: repositoryName,
@@ -143,7 +132,6 @@ const onComment = async (data: PullRequestGitlab) => {
 };
 
 const onMergedPR = async (data: PullRequestGitlab) => {
-  console.log('MR MERGED', data);
   const {
     repository: {
       name: repositoryName,
@@ -167,11 +155,8 @@ const onMergedPR = async (data: PullRequestGitlab) => {
 export const POST = async (request: Request, { params }: { params: { phoneNumber: string } }) => {
   const { phoneNumber: paramPhoneNumber = '' } = params || {};
   phoneNumber = paramPhoneNumber;
-  console.log('REQUEST PARAMS', params);
   const data = await request.json() as PullRequestGitlab;
-  console.log('REQUEST DATA', data);
   const eventType = request.headers.get('X-Gitlab-Event');
-  console.log('REQUEST HEADERS', eventType);
   const { object_attributes: objAttr } = data || {};
   const { action } = objAttr || {};
   if (eventType === 'Merge Request Hook') {
