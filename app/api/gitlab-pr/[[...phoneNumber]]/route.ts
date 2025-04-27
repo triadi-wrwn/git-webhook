@@ -52,7 +52,7 @@ const onCreatedPR = async (data: PullRequestGitlab) => {
     reviewers,
     user: author,
   } = data || {};
-  const message = `🆕 *${repositoryName}* MR #${id} created by ${getUserPhoneNumber(author)}
+  const message = `🆕 *${repositoryName}* MR #${id} *created* by ${getUserPhoneNumber(author)}
  
 *Title*: ${title}
 *Url*: ${prLink}
@@ -102,7 +102,7 @@ const onApproval = async (data: PullRequestGitlab) => {
   } = data || {};
   const foundReviewer = reviewers.find((p) => p.id === user.id);
   const isApproved = action === 'approved' || action === 'approval';
-  const message = `✍🏻 *${repositoryName}* MR #${id} approval status update
+  const message = `✍🏻 *${repositoryName}* MR #${id} *approval* status update
 
 *Title*: ${title}
 *Url*: ${prLink}
@@ -132,7 +132,7 @@ const onComment = async (data: PullRequestGitlab) => {
     },
     user,
   } = data || {};
-  const message = `✍🏻 *${repositoryName}* MR #${id} comments update
+  const message = `✍🏻 *${repositoryName}* MR #${id} *comments* update
 
 *Title*: ${title}
 *Url*: ${prLink}
@@ -156,7 +156,7 @@ const onMergedPR = async (data: PullRequestGitlab) => {
     },
     user: actor,
   } = data || {};
-  const message = `🚀 *${repositoryName}* PR #${id} *merged* by ${getUserPhoneNumber(actor)}
+  const message = `🚀 *${repositoryName}* MR #${id} *merged* by ${getUserPhoneNumber(actor)}
  
 *Title*: ${title}
 *Url*: ${prLink}
