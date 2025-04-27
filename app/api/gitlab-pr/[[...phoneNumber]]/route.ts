@@ -9,12 +9,14 @@ import type { Account, PullRequestBase } from './route.types';
 let phoneNumber = '';
 
 const getUserPhoneNumber = (data: Account) => {
+  console.log('ACCOUNT INFO', data);
   const { account_id: accountId, display_name: displayName } = data;
   const foundUser = USER_MAP_LIST.find((el) => el.account_id === accountId);
   return foundUser ? `@${foundUser.phoneNumber}` : displayName;
 };
 
 const sendMessage = async (message: string) => {
+  console.log('SEND MESSAGE', message);
   const formData = new FormData();
   formData.append('phone', phoneNumber || PHONE_TARGET);
   formData.append('message', message);
@@ -28,6 +30,7 @@ const sendMessage = async (message: string) => {
 };
 
 const onCreatedPR = async (data: PullRequestBase) => {
+  console.log('MR CREATED', data);
   const {
     pullrequest: {
       author,
@@ -53,6 +56,7 @@ ${prLink}
 };
 
 const onUpdatedPR = async (data: PullRequestBase) => {
+  console.log('MR UPDATED', data);
   const {
     pullrequest: {
       links: {
@@ -79,6 +83,7 @@ ${prLink}
 };
 
 const onApproval = async (data: PullRequestBase) => {
+  console.log('MR APPROVAL', data);
   const {
     pullrequest: {
       links: {
@@ -109,6 +114,7 @@ ${prLink}
 };
 
 const onMergedPR = async (data: PullRequestBase) => {
+  console.log('MR MERGED', data);
   const {
     actor,
     pullrequest: {
