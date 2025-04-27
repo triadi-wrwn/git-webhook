@@ -19,4 +19,10 @@ export const USER_MAP_LIST = [
     nickname: 'tri_',
     phoneNumber: '6282320018281',
   },
+  {
+    display_name: 'edi.teknikal',
+    account_id: '21712590',
+    nickname: 'Edi Pramono',
+    phoneNumber: '6282320018281',
+  },
 ];
