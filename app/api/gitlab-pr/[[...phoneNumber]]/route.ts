@@ -16,7 +16,7 @@ const getUserPhoneNumber = (data: User) => {
   console.log('ACCOUNT INFO', data);
   const { id: accountId, name: displayName } = data;
   const foundUser = USER_MAP_LIST.find((el) => el.account_id === accountId);
-  return foundUser ? `@${foundUser.phoneNumber}` : displayName;
+  return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber}` : foundUser?.nickname || displayName;
 };
 
 const getUserPhoneNumberById = (userId: number) => {

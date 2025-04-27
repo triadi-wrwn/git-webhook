@@ -21,8 +21,32 @@ export const USER_MAP_LIST = [
   },
   {
     display_name: 'edi.teknikal',
-    account_id: 20077026,
+    account_id: 21712590,
     nickname: 'Edi Pramono',
     phoneNumber: '6282320018281',
+  },
+  {
+    display_name: 'sauzanico',
+    account_id: 7763984,
+    nickname: 'Nico Sauza',
+    phoneNumber: '6285845830956',
+  },
+  {
+    display_name: 'alohdr',
+    account_id: 12042712,
+    nickname: 'Hendro Susilo',
+    phoneNumber: '6281364475006',
+  },
+  {
+    display_name: 'zdrobbany',
+    account_id: 5120760,
+    nickname: 'Zaid Robbany',
+    phoneNumber: '6287883300113',
+  },
+  {
+    display_name: 'teknikal1',
+    account_id: 21695238,
+    nickname: 'Teknikal Kartala',
+    phoneNumber: '',
   },
 ];
