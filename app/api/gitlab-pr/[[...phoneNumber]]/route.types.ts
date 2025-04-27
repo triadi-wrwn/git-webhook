@@ -184,6 +184,7 @@ export type PullRequestGitlab = {
   changes: Changes;
   repository: Repository;
   reviewers: User[];
+  merge_request: ObjectAttributes;
 };
 
 export type Changes = {

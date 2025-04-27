@@ -52,10 +52,10 @@ const onCreatedPR = async (data: PullRequestGitlab) => {
     reviewers,
     user: author,
   } = data || {};
-  const message = `🆕 *${repositoryName}* PR #${id} created by ${getUserPhoneNumber(author)}
+  const message = `🆕 *${repositoryName}* MR #${id} created by ${getUserPhoneNumber(author)}
  
-${title}
-${prLink}
+*Title*: ${title}
+*Url*: ${prLink}
 *Reviewers*: ${reviewers.length > 0 ? reviewers.map((reviewer) => getUserPhoneNumber(reviewer)).join(', ') : 'None'}`;
   await sendMessage(message);
 };
@@ -75,10 +75,10 @@ const onUpdatedPR = async (data: PullRequestGitlab) => {
     reviewers,
   } = data || {};
   const author = USER_MAP_LIST.find((el) => el.account_id === authorId);
-  const message = `🆕 *${repositoryName}* PR #${id} updated
+  const message = `🆕 *${repositoryName}* MR #${id} updated
  
-${title}
-${prLink}
+*Title*: ${title}
+*Url*: ${prLink}
 *Author*: ${author?.phoneNumber}
 *Reviewers*: ${reviewers.length > 0 ? reviewers.map((reviewer) => getUserPhoneNumber(reviewer)).join(', ') : 'None'}`;
   await sendMessage(message);
@@ -102,10 +102,10 @@ const onApproval = async (data: PullRequestGitlab) => {
   } = data || {};
   const foundReviewer = reviewers.find((p) => p.id === user.id);
   const isApproved = action === 'approved' || action === 'approval';
-  const message = `✍🏻 *${repositoryName}* PR #${id} approval status update
+  const message = `✍🏻 *${repositoryName}* MR #${id} approval status update
 
-${title}
-${prLink}
+*Title*: ${title}
+*Url*: ${prLink}
 *Author*: ${getUserPhoneNumberById(authorId)}
 *Approval Status*: ${reviewers.map((p) => (
     `${getUserPhoneNumber(p)}${foundReviewer?.id === p.id && isApproved ? ' ✅' : ' ⛔'}`
@@ -122,18 +122,20 @@ const onComment = async (data: PullRequestGitlab) => {
       name: repositoryName,
     },
     object_attributes: {
+      note,
+    },
+    merge_request: {
       iid: id,
       title,
-      url: prLink,
       author_id: authorId,
-      note,
+      url: prLink,
     },
     user,
   } = data || {};
-  const message = `✍🏻 *${repositoryName}* PR #${id} comments updated
+  const message = `✍🏻 *${repositoryName}* MR #${id} comments update
 
-${title}
-${prLink}
+*Title*: ${title}
+*Url*: ${prLink}
 *Author*: ${getUserPhoneNumberById(authorId)}
 *Commented By*: ${getUserPhoneNumber(user)}
 *Comment*: ${truncate(note)}`;
@@ -156,8 +158,8 @@ const onMergedPR = async (data: PullRequestGitlab) => {
   } = data || {};
   const message = `🚀 *${repositoryName}* PR #${id} *merged* by ${getUserPhoneNumber(actor)}
  
-${title}
-${prLink}
+*Title*: ${title}
+*Url*: ${prLink}
 *Author*: ${getUserPhoneNumberById(authorId)}`;
   await sendMessage(message);
 };
