@@ -1,5 +1,4 @@
 import {
-  EVENT_TYPE,
   PHONE_TARGET, USER_MAP_LIST,
   WA_TOKEN,
   WA_URL,
@@ -7,6 +6,11 @@ import {
 import type { PullRequestGitlab, User } from './route.types';
 
 let phoneNumber = '';
+
+const truncate = (
+  value: string | undefined,
+  length: number = 50,
+) => (value && value.length > length ? `${value.substring(0, length - 3)}...` : value);
 
 const getUserPhoneNumber = (data: User) => {
   console.log('ACCOUNT INFO', data);
@@ -91,21 +95,48 @@ const onApproval = async (data: PullRequestGitlab) => {
       title,
       url: prLink,
       author_id: authorId,
+      action,
     },
     reviewers,
     user,
   } = data || {};
   const foundReviewer = reviewers.find((p) => p.id === user.id);
+  const isApproved = action === 'approved' || action === 'approval';
   const message = `✍🏻 *${repositoryName}* PR #${id} approval status update
- 
+
 ${title}
 ${prLink}
 *Author*: ${getUserPhoneNumberById(authorId)}
 *Approval Status*: ${reviewers.map((p) => (
-    `${getUserPhoneNumber(p)}${foundReviewer?.id === p.id ? ' ✅' : ''}`
+    `${getUserPhoneNumber(p)}${foundReviewer?.id === p.id && isApproved ? ' ✅' : ' ⛔'}`
   ))
     .join(', ')}
 `;
+  await sendMessage(message);
+};
+
+const onComment = async (data: PullRequestGitlab) => {
+  console.log('MR COMMENT', data);
+  const {
+    repository: {
+      name: repositoryName,
+    },
+    object_attributes: {
+      iid: id,
+      title,
+      url: prLink,
+      author_id: authorId,
+      note,
+    },
+    user,
+  } = data || {};
+  const message = `✍🏻 *${repositoryName}* PR #${id} comments updated
+
+${title}
+${prLink}
+*Author*: ${getUserPhoneNumberById(authorId)}
+*Commented By*: ${getUserPhoneNumber(user)}
+*Comment*: ${truncate(note)}`;
   await sendMessage(message);
 };
 
@@ -134,35 +165,42 @@ ${prLink}
 export const POST = async (request: Request, { params }: { params: { phoneNumber: string } }) => {
   const { phoneNumber: paramPhoneNumber = '' } = params || {};
   phoneNumber = paramPhoneNumber;
-  const {
-    created,
-    merged,
-    updated,
-  } = EVENT_TYPE;
   console.log('REQUEST PARAMS', params);
-  const data = await request.json();
+  const data = await request.json() as PullRequestGitlab;
   console.log('REQUEST DATA', data);
   const eventType = request.headers.get('X-Gitlab-Event');
   console.log('REQUEST HEADERS', eventType);
-  if (eventType) {
-    switch (eventType) {
-      case created: {
+  const { object_attributes: objAttr } = data || {};
+  const { action } = objAttr || {};
+  if (eventType === 'Merge Request Hook') {
+    switch (action) {
+      case 'open': {
         await onCreatedPR(data);
         break;
       }
-      case updated: {
+      case 'update': {
         await onUpdatedPR(data);
         break;
       }
-      case merged: {
+      case 'merge': {
         await onMergedPR(data);
         break;
       }
-      default: {
+      case 'unapproved':
+      case 'unapproval':
+      case 'approval':
+      case 'approved': {
         await onApproval(data);
         break;
       }
+      default: {
+        break;
+      }
     }
+  }
+
+  if (eventType === 'Note Hook') {
+    await onComment(data);
   }
 
   return new Response();

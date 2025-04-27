@@ -251,6 +251,7 @@ export type ObjectAttributes = {
   work_in_progress: boolean;
   approval_rules: unknown[];
   action: string;
+  note: string
 };
 
 export type LastCommit = {
