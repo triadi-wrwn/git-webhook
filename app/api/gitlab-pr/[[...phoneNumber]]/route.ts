@@ -14,7 +14,7 @@ const truncate = (
 
 const getUserPhoneNumber = (data: User) => {
   console.log('ACCOUNT INFO', data);
-  const { id: accountId, name: displayName } = data;
+  const { id: accountId, name: displayName } = data || {};
   const foundUser = USER_MAP_LIST.find((el) => el.account_id === accountId);
   return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber}` : foundUser?.nickname || displayName;
 };
@@ -49,14 +49,14 @@ const onCreatedPR = async (data: PullRequestGitlab) => {
       title,
       url: prLink,
     },
-    reviewers,
+    reviewers = [],
     user: author,
   } = data || {};
   const message = `🆕 *${repositoryName}* MR #${id} *created* by ${getUserPhoneNumber(author)}
  
 *Title*: ${title}
 *Url*: ${prLink}
-*Reviewers*: ${reviewers.length > 0 ? reviewers.map((reviewer) => getUserPhoneNumber(reviewer)).join(', ') : 'None'}`;
+*Reviewers*: ${reviewers?.length > 0 ? reviewers.map((reviewer) => getUserPhoneNumber(reviewer)).join(', ') : 'None'}`;
   await sendMessage(message);
 };
 
@@ -72,7 +72,7 @@ const onUpdatedPR = async (data: PullRequestGitlab) => {
       url: prLink,
       author_id: authorId,
     },
-    reviewers,
+    reviewers = [],
   } = data || {};
   const author = USER_MAP_LIST.find((el) => el.account_id === authorId);
   const message = `🆕 *${repositoryName}* MR #${id} updated
@@ -80,7 +80,7 @@ const onUpdatedPR = async (data: PullRequestGitlab) => {
 *Title*: ${title}
 *Url*: ${prLink}
 *Author*: ${author?.phoneNumber}
-*Reviewers*: ${reviewers.length > 0 ? reviewers.map((reviewer) => getUserPhoneNumber(reviewer)).join(', ') : 'None'}`;
+*Reviewers*: ${reviewers.length > 0 ? reviewers.map((reviewer) => getUserPhoneNumber(reviewer)).join(', ') : '-'}`;
   await sendMessage(message);
 };
 
@@ -97,7 +97,7 @@ const onApproval = async (data: PullRequestGitlab) => {
       author_id: authorId,
       action,
     },
-    reviewers,
+    reviewers = [],
     user,
   } = data || {};
   const foundReviewer = reviewers.find((p) => p.id === user.id);
