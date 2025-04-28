@@ -11,6 +11,7 @@ export const EVENT_TYPE = {
 export const PHONE_TARGET = process.env.PHONE_TARGET || '';
 export const WA_URL = process.env.WA_URL || '';
 export const WA_TOKEN = process.env.WA_TOKEN || '';
+export const GITLAB_TOKEN = process.env.GITLAB_ACCESS_TOKEN || '';
 
 export const USER_MAP_LIST = [
   {

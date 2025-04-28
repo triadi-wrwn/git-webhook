@@ -134,6 +134,7 @@ export interface Project {
   uuid: string;
   name: string;
   links: Links;
+  id: number;
 }
 
 export interface Workspace {
@@ -300,4 +301,67 @@ export type User = {
   username: string;
   avatar_url: string;
   email: string;
+};
+
+export type TimerMap = {
+  [mergeRequestId: string]: NodeJS.Timeout;
+};
+
+export type GitlabNote = {
+  id: number;
+  type: string;
+  body: string;
+  author: NoteAuthor;
+  created_at: string;
+  updated_at: string;
+  system: boolean;
+  noteable_id: number;
+  noteable_type: string;
+  project_id: number;
+  commit_id: null;
+  position: NotePosition;
+  resolvable: boolean;
+  resolved: boolean;
+  resolved_by: null;
+  resolved_at: null;
+  confidential: boolean;
+  internal: boolean;
+  imported: boolean;
+  imported_from: string;
+  noteable_iid: number;
+  commands_changes: unknown;
+};
+
+export type NoteAuthor = {
+  id: number;
+  username: string;
+  name: string;
+  state: string;
+  locked: boolean;
+  avatar_url: string;
+  web_url: string;
+};
+
+export type NotePosition = {
+  base_sha: string;
+  start_sha: string;
+  head_sha: string;
+  old_path: string;
+  new_path: string;
+  position_type: string;
+  old_line: null;
+  new_line: number;
+  line_range: LineRange;
+};
+
+export type LineRange = {
+  start: End;
+  end: End;
+};
+
+export type End = {
+  line_code: string;
+  type: string;
+  old_line: null;
+  new_line: number;
 };

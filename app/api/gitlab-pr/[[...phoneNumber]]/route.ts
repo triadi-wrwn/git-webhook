@@ -1,16 +1,17 @@
 import {
+  GITLAB_TOKEN,
   PHONE_TARGET, USER_MAP_LIST,
   WA_TOKEN,
   WA_URL,
 } from './route.constants';
-import type { PullRequestGitlab, User } from './route.types';
+import type {
+  GitlabNote, PullRequestGitlab, TimerMap, User,
+} from './route.types';
 
 let phoneNumber = '';
 
-const truncate = (
-  value: string | undefined,
-  length: number = 50,
-) => (value && value.length > length ? `${value.substring(0, length - 3)}...` : value);
+// Global memory
+const pendingTimers: TimerMap = {};
 
 const getUserPhoneNumber = (data: User) => {
   const { id: accountId, name: displayName } = data || {};
@@ -41,6 +42,12 @@ const sendMessage = async (message: string) => {
     body: formData,
   });
 };
+
+const getNotes = async (projectId: number, mrId: number) => fetch(`https://gitlab.com/api/v4/projects/${projectId}/merge_requests/${mrId}/notes`, {
+  headers: {
+    'PRIVATE-TOKEN': GITLAB_TOKEN!,
+  },
+});
 
 const onCreatedPR = async (data: PullRequestGitlab) => {
   const {
@@ -115,25 +122,52 @@ const onComment = async (data: PullRequestGitlab) => {
     repository: {
       name: repositoryName,
     },
-    object_attributes: {
-      note,
-    },
     merge_request: {
       iid: id,
       title,
       author_id: authorId,
       url: prLink,
     },
+    project: {
+      id: projectId,
+    },
     user,
   } = data || {};
-  const message = `✍🏻 *${repositoryName}* MR #${id} *comments* update
+
+  const timerKey = `${projectId}-${id}`;
+
+  if (pendingTimers[timerKey]) {
+    clearTimeout(pendingTimers[timerKey]);
+  }
+
+  pendingTimers[timerKey] = setTimeout(async () => {
+    try {
+      const gitlabResponse = await getNotes(projectId, id);
+
+      const notes: GitlabNote[] = await gitlabResponse.json();
+
+      if (!Array.isArray(notes)) throw new Error('Unexpected GitLab API response');
+
+      // Filter only real user comments
+      const userComments = notes.filter((el) => el.system === false && el.author?.id === user?.id);
+      console.log('COMMENTS FROM REVIEWER', userComments);
+      const commentCount = userComments.length;
+
+      const message = `✍🏻 *${repositoryName}* MR #${id} *comments* update
 
 *Title*: ${title}
 *Url*: ${prLink}
 *Author*: ${getUserPhoneNumberById(authorId)}
 *Commented By*: ${getUserPhoneNumber(user)}
-*Comment*: ${truncate(note)}`;
-  await sendMessage(message);
+*Comment Count*: ${commentCount}`;
+
+      await sendMessage(message);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    } finally {
+      delete pendingTimers[timerKey];
+    }
+  }, 5000);
 };
 
 const onMergedPR = async (data: PullRequestGitlab) => {
