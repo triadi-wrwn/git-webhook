@@ -133,8 +133,10 @@ const onComment = async (data: PullRequestGitlab) => {
     },
     user,
   } = data || {};
+  console.log('DECONTRUCTING DATA');
 
   const timerKey = `${projectId}-${id}`;
+  console.log('TIMER KEY', timerKey);
 
   if (pendingTimers[timerKey]) {
     clearTimeout(pendingTimers[timerKey]);
@@ -229,6 +231,7 @@ export const POST = async (request: Request, { params }: { params: { phoneNumber
   }
 
   if (eventType === 'Note Hook') {
+    console.log('NOTE HOOK', data);
     await onComment(data);
   }
 
