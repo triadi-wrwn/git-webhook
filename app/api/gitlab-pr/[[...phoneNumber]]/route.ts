@@ -141,9 +141,10 @@ const onComment = async (data: PullRequestGitlab) => {
   }
 
   pendingTimers[timerKey] = setTimeout(async () => {
+    console.log('FETCHING NOTES...');
     try {
       const gitlabResponse = await getNotes(projectId, id);
-
+      console.log('GITLAB RESPONSE', gitlabResponse);
       const notes: GitlabNote[] = await gitlabResponse.json();
 
       if (!Array.isArray(notes)) throw new Error('Unexpected GitLab API response');
