@@ -159,6 +159,8 @@ export const POST = async (request: Request, { params }: { params: { phoneNumber
   const eventType = request.headers.get('X-Gitlab-Event');
   const { object_attributes: objAttr } = data || {};
   const { action } = objAttr || {};
+  console.log('EVENT', eventType, action);
+  console.log('REQUEST DATA', data);
   if (eventType === 'Merge Request Hook') {
     switch (action) {
       case 'open': {
