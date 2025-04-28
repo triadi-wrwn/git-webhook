@@ -20,7 +20,7 @@ const getUserPhoneNumber = (data: User) => {
 
 const getUserPhoneNumberById = (userId: number) => {
   const foundUser = USER_MAP_LIST.find((el) => el.account_id === userId);
-  return foundUser ? `@${foundUser.phoneNumber}` : '';
+  return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber}` : (foundUser?.nickname || ``);
 };
 
 const sendMessage = async (message: string) => {
@@ -70,12 +70,11 @@ const onUpdatedPR = async (data: PullRequestGitlab) => {
     },
     reviewers = [],
   } = data || {};
-  const author = USER_MAP_LIST.find((el) => el.account_id === authorId);
   const message = `🆕 *${repositoryName}* MR #${id} updated
  
 *Title*: ${title}
 *Url*: ${prLink}
-*Author*: ${author?.phoneNumber}
+*Author*: ${getUserPhoneNumberById(authorId)}
 *Reviewers*: ${reviewers.length > 0 ? reviewers.map((reviewer) => getUserPhoneNumber(reviewer)).join(', ') : '-'}`;
   await sendMessage(message);
 };
