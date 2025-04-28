@@ -49,4 +49,16 @@ export const USER_MAP_LIST = [
     nickname: 'Teknikal Kartala',
     phoneNumber: '',
   },
+  {
+    display_name: 'muhyasin89',
+    account_id: 1536138,
+    nickname: 'muhammad yasin',
+    phoneNumber: '628111767305',
+  },
+  {
+    display_name: 'zakyalvan1',
+    account_id: 9833096,
+    nickname: 'Zaky Alvan',
+    phoneNumber: '6281320144088',
+  },
 ];
