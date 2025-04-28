@@ -15,11 +15,17 @@ const truncate = (
 const getUserPhoneNumber = (data: User) => {
   const { id: accountId, name: displayName } = data || {};
   const foundUser = USER_MAP_LIST.find((el) => el.account_id === accountId);
+  if (foundUser?.type === 'general') {
+    return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber} (${foundUser.nickname})` : (foundUser?.nickname || '');
+  }
   return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber}` : foundUser?.nickname || displayName;
 };
 
 const getUserPhoneNumberById = (userId: number) => {
   const foundUser = USER_MAP_LIST.find((el) => el.account_id === userId);
+  if (foundUser?.type === 'general') {
+    return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber} (${foundUser.nickname})` : (foundUser?.nickname || '');
+  }
   return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber}` : (foundUser?.nickname || '');
 };
 

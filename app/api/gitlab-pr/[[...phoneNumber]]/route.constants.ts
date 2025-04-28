@@ -46,8 +46,9 @@ export const USER_MAP_LIST = [
   {
     display_name: 'teknikal1',
     account_id: 21695238,
+    type: 'general',
     nickname: 'Teknikal Kartala',
-    phoneNumber: '',
+    phoneNumber: '6281320144088',
   },
   {
     display_name: 'muhyasin89',
