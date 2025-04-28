@@ -20,7 +20,7 @@ const getUserPhoneNumber = (data: User) => {
 
 const getUserPhoneNumberById = (userId: number) => {
   const foundUser = USER_MAP_LIST.find((el) => el.account_id === userId);
-  return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber}` : (foundUser?.nickname || ``);
+  return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber}` : (foundUser?.nickname || '');
 };
 
 const sendMessage = async (message: string) => {
