@@ -5,13 +5,10 @@ import {
   WA_URL,
 } from './route.constants';
 import type {
-  GitlabNote, PullRequestGitlab, TimerMap, User,
+  GitlabNote, PullRequestGitlab, User,
 } from './route.types';
 
 let phoneNumber = '';
-
-// Global memory
-const pendingTimers: TimerMap = {};
 
 const getUserPhoneNumber = (data: User) => {
   const { id: accountId, name: displayName } = data || {};
@@ -116,8 +113,10 @@ const onApproval = async (data: PullRequestGitlab) => {
 `;
   await sendMessage(message);
 };
+let timeoutId: NodeJS.Timeout | undefined;
 
 const onComment = async (data: PullRequestGitlab) => {
+  clearTimeout(timeoutId);
   const {
     repository: {
       name: repositoryName,
@@ -135,16 +134,16 @@ const onComment = async (data: PullRequestGitlab) => {
   } = data || {};
   console.log('DECONTRUCTING DATA');
 
-  const timerKey = `${projectId}-${id}`;
-  console.log('TIMER KEY', timerKey);
+  // const timerKey = `${projectId}-${id}`;
+  // console.log('TIMER KEY', timerKey);
 
-  if (pendingTimers[timerKey]) {
-    clearTimeout(pendingTimers[timerKey]);
-  }
+  // if (pendingTimers[timerKey]) {
+  //   clearTimeout(pendingTimers[timerKey]);
+  // }
 
-  pendingTimers[timerKey] = setTimeout(async () => {
-    console.log('FETCHING NOTES...');
+  timeoutId = setTimeout(async () => {
     try {
+      console.log('FETCHING NOTES...');
       const gitlabResponse = await getNotes(projectId, id);
       console.log('GITLAB RESPONSE', gitlabResponse);
       const notes: GitlabNote[] = await gitlabResponse.json();
@@ -167,10 +166,8 @@ const onComment = async (data: PullRequestGitlab) => {
       await sendMessage(message);
     } catch (error) {
       console.error('Failed to send message:', error);
-    } finally {
-      delete pendingTimers[timerKey];
     }
-  }, 5000);
+  }, 1000);
 };
 
 const onMergedPR = async (data: PullRequestGitlab) => {
