@@ -116,7 +116,6 @@ const onApproval = async (data: PullRequestGitlab) => {
 let timeoutId: NodeJS.Timeout | undefined;
 
 const onComment = async (data: PullRequestGitlab) => {
-  clearTimeout(timeoutId);
   const {
     repository: {
       name: repositoryName,
@@ -134,28 +133,20 @@ const onComment = async (data: PullRequestGitlab) => {
   } = data || {};
   console.log('DECONTRUCTING DATA');
 
-  // const timerKey = `${projectId}-${id}`;
-  // console.log('TIMER KEY', timerKey);
+  try {
+    console.log('FETCHING NOTES...');
+    const gitlabResponse = await getNotes(projectId, id);
+    console.log('GITLAB RESPONSE', gitlabResponse);
+    const notes: GitlabNote[] = await gitlabResponse.json();
 
-  // if (pendingTimers[timerKey]) {
-  //   clearTimeout(pendingTimers[timerKey]);
-  // }
+    if (!Array.isArray(notes)) throw new Error('Unexpected GitLab API response');
 
-  timeoutId = setTimeout(async () => {
-    try {
-      console.log('FETCHING NOTES...');
-      const gitlabResponse = await getNotes(projectId, id);
-      console.log('GITLAB RESPONSE', gitlabResponse);
-      const notes: GitlabNote[] = await gitlabResponse.json();
+    // Filter only real user comments
+    const userComments = notes.filter((el) => el.system === false && el.author?.id === user?.id);
+    console.log('COMMENTS FROM REVIEWER', userComments);
+    const commentCount = userComments.length;
 
-      if (!Array.isArray(notes)) throw new Error('Unexpected GitLab API response');
-
-      // Filter only real user comments
-      const userComments = notes.filter((el) => el.system === false && el.author?.id === user?.id);
-      console.log('COMMENTS FROM REVIEWER', userComments);
-      const commentCount = userComments.length;
-
-      const message = `✍🏻 *${repositoryName}* MR #${id} *comments* update
+    const message = `✍🏻 *${repositoryName}* MR #${id} *comments* update
 
 *Title*: ${title}
 *Url*: ${prLink}
@@ -163,11 +154,10 @@ const onComment = async (data: PullRequestGitlab) => {
 *Commented By*: ${getUserPhoneNumber(user)}
 *Comment Count*: ${commentCount}`;
 
-      await sendMessage(message);
-    } catch (error) {
-      console.error('Failed to send message:', error);
-    }
-  }, 1000);
+    await sendMessage(message);
+  } catch (error) {
+    console.error('Failed to send message:', error);
+  }
 };
 
 const onMergedPR = async (data: PullRequestGitlab) => {
@@ -228,8 +218,11 @@ export const POST = async (request: Request, { params }: { params: { phoneNumber
   }
 
   if (eventType === 'Note Hook') {
-    console.log('NOTE HOOK', data);
-    await onComment(data);
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(async () => {
+      console.log('NOTE HOOK', data);
+      await onComment(data);
+    }, 3000);
   }
 
   return new Response();
