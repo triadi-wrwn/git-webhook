@@ -73,7 +73,12 @@ const onApproval = async (
     },
     user: reviewer,
   } = data || {};
-  const isApproved = !isRequestChanges && (action === 'approved' || action === 'approval');
+  let emotion = '';
+  if (isRequestChanges && action === 'update') {
+    emotion = '⛔ Need Changes';
+  } else if (action === 'approved' || action === 'approval') {
+    emotion = '✅ Approved';
+  }
   const message = `✍🏻 *${repositoryName}* MR #${id} *approval* status update
 
 *Title*: ${title}
@@ -81,7 +86,7 @@ const onApproval = async (
 *Author*: ${getUserPhoneNumberById(authorId)}
 *Approval Status*: ${
   reviewer
-    ? `${getUserPhoneNumber(reviewer)}${isApproved ? ' ✅' : ' ⛔ Need Changes'}`
+    ? `${getUserPhoneNumber(reviewer)} ${emotion}`
     : ''
 }
 *Comment Count*: ${commentCount}
