@@ -180,16 +180,16 @@ export const POST = async (
   const data = (await request.json()) as PullRequestGitlab;
   const eventType = request.headers.get('X-Gitlab-Event');
   const {
-    project: { id: projectId },
+    project: { id: projectId } = {},
     object_attributes: objAttr,
-    merge_request: { id: mrId },
+    merge_request: { id: mrId } = {},
     changes: {
       description,
       description: {
         previous: previousDescription,
         current: currentDescription,
-      },
-    },
+      } = {},
+    } = {},
   } = data || {};
   const { action } = objAttr || {};
   console.log('EVENT', eventType, action);
@@ -203,7 +203,7 @@ export const POST = async (
     );
   }
 
-  if (isRequestChanges) {
+  if (isRequestChanges && projectId && mrId) {
     const gitlabResponse = await getNotes(projectId, mrId);
     console.log('GITLAB RESPONSE', gitlabResponse);
     const notes: GitlabNote[] = await gitlabResponse.json();
