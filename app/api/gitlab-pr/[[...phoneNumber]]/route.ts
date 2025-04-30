@@ -182,7 +182,6 @@ export const POST = async (
   const {
     project: { id: projectId } = {},
     object_attributes: objAttr,
-    merge_request: { id: mrId } = {},
     changes: {
       description,
       description: {
@@ -191,7 +190,7 @@ export const POST = async (
       } = {},
     } = {},
   } = data || {};
-  const { action } = objAttr || {};
+  const { action, iid: mrId } = objAttr || {};
   console.log('EVENT', eventType, action);
   console.log('REQUEST DATA', data);
 
