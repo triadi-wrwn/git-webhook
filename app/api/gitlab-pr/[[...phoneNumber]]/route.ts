@@ -12,6 +12,8 @@ import {
 import type { GitlabNote, PullRequestGitlab } from './route.types';
 
 let phoneNumber = '';
+let isRequestChanges = false;
+let commentCount = 0;
 
 const sendMessage = async (message: string) => {
   const formData = new FormData();
@@ -58,8 +60,6 @@ const onCreatedPR = async (data: PullRequestGitlab) => {
 
 const onApproval = async (
   data: PullRequestGitlab,
-  requestChanges?: boolean,
-  commentCount?: number,
 ) => {
   const {
     repository: { name: repositoryName },
@@ -72,7 +72,7 @@ const onApproval = async (
     },
     user: reviewer,
   } = data || {};
-  const isApproved = !requestChanges && (action === 'approved' || action === 'approval');
+  const isApproved = !isRequestChanges && (action === 'approved' || action === 'approval');
   const message = `✍🏻 *${repositoryName}* MR #${id} *approval* status update
 
 *Title*: ${title}
@@ -90,47 +90,14 @@ const onApproval = async (
 
 const onUpdatedPR = async (data: PullRequestGitlab) => {
   const {
-    project: { id: projectId },
     repository: { name: repositoryName },
     object_attributes: {
       iid: id, title, url: prLink, author_id: authorId,
     },
     reviewers = [],
-    changes: {
-      description,
-      description: {
-        previous: previousDescription,
-        current: currentDescription,
-      },
-    },
   } = data || {};
 
-  let isRequestChanges = false;
-  if (description && previousDescription && currentDescription) {
-    isRequestChanges = didCheckboxChangeToChecked(
-      previousDescription,
-      currentDescription,
-      'Request changes',
-    );
-  }
-
-  if (isRequestChanges) {
-    const gitlabResponse = await getNotes(projectId, id);
-    console.log('GITLAB RESPONSE', gitlabResponse);
-    const notes: GitlabNote[] = await gitlabResponse.json();
-
-    if (!Array.isArray(notes)) throw new Error('Unexpected GitLab API response');
-
-    // Filter only real user comments
-    const userComments = notes.filter((el) => el.system === false);
-    console.log('COMMENTS FROM REVIEWER', userComments);
-    const commentCount = userComments.length;
-    console.log('COMMENT COUNT', commentCount);
-    await onApproval(data, isRequestChanges, commentCount);
-    return;
-  }
-
-  const message = `🆕 *${repositoryName}* MR #${id} updated
+  const message = `🆙 *${repositoryName}* MR #${id} updated
  
 *Title*: ${title}
 *Url*: ${prLink}
@@ -144,47 +111,47 @@ const onUpdatedPR = async (data: PullRequestGitlab) => {
   await sendMessage(message);
 };
 
-let timeoutId: NodeJS.Timeout | undefined;
+// let timeoutId: NodeJS.Timeout | undefined;
 
-const onComment = async (data: PullRequestGitlab) => {
-  const {
-    repository: { name: repositoryName },
-    merge_request: {
-      iid: id, title, author_id: authorId, url: prLink,
-    },
-    project: { id: projectId },
-    user,
-  } = data || {};
-  console.log('DECONTRUCTING DATA');
+// const onComment = async (data: PullRequestGitlab) => {
+//   const {
+//     repository: { name: repositoryName },
+//     merge_request: {
+//       iid: id, title, author_id: authorId, url: prLink,
+//     },
+//     project: { id: projectId },
+//     user,
+//   } = data || {};
+//   console.log('DECONTRUCTING DATA');
 
-  try {
-    console.log('FETCHING NOTES...');
-    const gitlabResponse = await getNotes(projectId, id);
-    console.log('GITLAB RESPONSE', gitlabResponse);
-    const notes: GitlabNote[] = await gitlabResponse.json();
+//   try {
+//     console.log('FETCHING NOTES...');
+//     const gitlabResponse = await getNotes(projectId, id);
+//     console.log('GITLAB RESPONSE', gitlabResponse);
+//     const notes: GitlabNote[] = await gitlabResponse.json();
 
-    if (!Array.isArray(notes)) throw new Error('Unexpected GitLab API response');
+//     if (!Array.isArray(notes)) throw new Error('Unexpected GitLab API response');
 
-    // Filter only real user comments
-    const userComments = notes.filter(
-      (el) => el.system === false && el.author?.id === user?.id,
-    );
-    console.log('COMMENTS FROM REVIEWER', userComments);
-    const commentCount = userComments.length;
+//     // Filter only real user comments
+//     const userComments = notes.filter(
+//       (el) => el.system === false && el.author?.id === user?.id,
+//     );
+//     console.log('COMMENTS FROM REVIEWER', userComments);
+//     const commentCount = userComments.length;
 
-    const message = `✍🏻 *${repositoryName}* MR #${id} *comments* update
+//     const message = `✍🏻 *${repositoryName}* MR #${id} *comments* update
 
-*Title*: ${title}
-*Url*: ${prLink}
-*Author*: ${getUserPhoneNumberById(authorId)}
-*Commented By*: ${getUserPhoneNumber(user)}
-*Comment Count*: ${commentCount}`;
+// *Title*: ${title}
+// *Url*: ${prLink}
+// *Author*: ${getUserPhoneNumberById(authorId)}
+// *Commented By*: ${getUserPhoneNumber(user)}
+// *Comment Count*: ${commentCount}`;
 
-    await sendMessage(message);
-  } catch (error) {
-    console.error('Failed to send message:', error);
-  }
-};
+//     await sendMessage(message);
+//   } catch (error) {
+//     console.error('Failed to send message:', error);
+//   }
+// };
 
 const onMergedPR = async (data: PullRequestGitlab) => {
   const {
@@ -212,10 +179,44 @@ export const POST = async (
   phoneNumber = paramPhoneNumber;
   const data = (await request.json()) as PullRequestGitlab;
   const eventType = request.headers.get('X-Gitlab-Event');
-  const { object_attributes: objAttr } = data || {};
+  const {
+    project: { id: projectId },
+    object_attributes: objAttr,
+    merge_request: { id: mrId },
+    changes: {
+      description,
+      description: {
+        previous: previousDescription,
+        current: currentDescription,
+      },
+    },
+  } = data || {};
   const { action } = objAttr || {};
   console.log('EVENT', eventType, action);
   console.log('REQUEST DATA', data);
+
+  if (description && previousDescription && currentDescription) {
+    isRequestChanges = didCheckboxChangeToChecked(
+      previousDescription,
+      currentDescription,
+      'Request changes',
+    );
+  }
+
+  if (isRequestChanges) {
+    const gitlabResponse = await getNotes(projectId, mrId);
+    console.log('GITLAB RESPONSE', gitlabResponse);
+    const notes: GitlabNote[] = await gitlabResponse.json();
+
+    if (!Array.isArray(notes)) throw new Error('Unexpected GitLab API response');
+
+    // Filter only real user comments
+    const userComments = notes.filter((el) => el.system === false);
+    console.log('COMMENTS FROM REVIEWER', userComments);
+    commentCount = userComments.length;
+    console.log('COMMENT COUNT', commentCount);
+  }
+
   if (eventType === 'Merge Request Hook') {
     switch (action) {
       case 'open': {
@@ -223,7 +224,11 @@ export const POST = async (
         break;
       }
       case 'update': {
-        await onUpdatedPR(data);
+        if (isRequestChanges) {
+          await onApproval(data);
+        } else {
+          await onUpdatedPR(data);
+        }
         break;
       }
       case 'merge': {
@@ -243,13 +248,13 @@ export const POST = async (
     }
   }
 
-  if (eventType === 'Note Hook') {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(async () => {
-      console.log('NOTE HOOK', data);
-      await onComment(data);
-    }, 3000);
-  }
+  // if (eventType === 'Note Hook') {
+  //   clearTimeout(timeoutId);
+  //   timeoutId = setTimeout(async () => {
+  //     console.log('NOTE HOOK', data);
+  //     await onComment(data);
+  //   }, 3000);
+  // }
 
   return new Response();
 };
