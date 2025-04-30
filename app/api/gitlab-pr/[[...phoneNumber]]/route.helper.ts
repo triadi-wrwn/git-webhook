@@ -10,7 +10,10 @@ function didCheckboxChangeToChecked(
   currentMd: string,
   label: string,
 ): boolean {
-  const uncheckedPattern = new RegExp(`\\[-? ?\\]\\s*${escapeRegExp(label)}`, 'i');
+  const uncheckedPattern = new RegExp(
+    `\\[-? ?\\]\\s*${escapeRegExp(label)}`,
+    'i',
+  );
   const checkedPattern = new RegExp(`\\[x\\]\\s*${escapeRegExp(label)}`, 'i');
 
   const wasUnchecked = uncheckedPattern.test(previousMd) && !checkedPattern.test(previousMd);
@@ -19,21 +22,53 @@ function didCheckboxChangeToChecked(
   return wasUnchecked && isNowChecked;
 }
 
+const getUserIdByUserName = (userName: string) => {
+  const foundUser = USER_MAP_LIST.find((el) => el.display_name === userName);
+  return foundUser ? foundUser.account_id : null;
+};
+
+async function getReviewerIds(md: string): Promise<number[]> {
+  const reviewersSection = md.split('## Reviewers')[1]?.split('##')[0] || '';
+  const matchesUsername = reviewersSection.match(/@(\w[\w.-]*)/g) || [];
+  const reviewerIds: number[] = [];
+
+  for (const username of matchesUsername) {
+    const id = getUserIdByUserName(username);
+    if (id) reviewerIds.push(id);
+  }
+
+  return reviewerIds;
+}
+
 const getUserPhoneNumberById = (userId: number) => {
   const foundUser = USER_MAP_LIST.find((el) => el.account_id === userId);
   if (foundUser?.type === 'general') {
-    return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber} (${foundUser.nickname})` : (foundUser?.nickname || '');
+    return foundUser && foundUser.phoneNumber
+      ? `@${foundUser.phoneNumber} (${foundUser.nickname})`
+      : foundUser?.nickname || '';
   }
-  return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber}` : (foundUser?.nickname || '');
+  return foundUser && foundUser.phoneNumber
+    ? `@${foundUser.phoneNumber}`
+    : foundUser?.nickname || '';
 };
 
 const getUserPhoneNumber = (data: User) => {
   const { id: accountId, name: displayName } = data || {};
   const foundUser = USER_MAP_LIST.find((el) => el.account_id === accountId);
   if (foundUser?.type === 'general') {
-    return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber} (${foundUser.nickname})` : (foundUser?.nickname || '');
+    return foundUser && foundUser.phoneNumber
+      ? `@${foundUser.phoneNumber} (${foundUser.nickname})`
+      : foundUser?.nickname || '';
   }
-  return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber}` : foundUser?.nickname || displayName;
+  return foundUser && foundUser.phoneNumber
+    ? `@${foundUser.phoneNumber}`
+    : foundUser?.nickname || displayName;
 };
 
-export { didCheckboxChangeToChecked, getUserPhoneNumber, getUserPhoneNumberById };
+export {
+  didCheckboxChangeToChecked,
+  getReviewerIds,
+  getUserIdByUserName,
+  getUserPhoneNumber,
+  getUserPhoneNumberById,
+};

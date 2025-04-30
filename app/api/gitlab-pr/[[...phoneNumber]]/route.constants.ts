@@ -16,50 +16,50 @@ export const GITLAB_TOKEN_TEST = process.env.GITLAB_ACCESS_TOKEN_TEST || '';
 
 export const USER_MAP_LIST = [
   {
-    display_name: 'trdi. wrwn',
+    display_name: '@triadi.wrn',
     account_id: 20077026,
     nickname: 'tri_',
     phoneNumber: '6282320018281',
   },
   {
-    display_name: 'edi.teknikal',
+    display_name: '@edi.teknikal',
     account_id: 21712590,
     nickname: 'Edi Pramono',
     phoneNumber: '6281221747708',
   },
   {
-    display_name: 'sauzanico',
+    display_name: '@sauzanico',
     account_id: 7763984,
     nickname: 'Nico Sauza',
     phoneNumber: '6285845830956',
   },
   {
-    display_name: 'alohdr',
+    display_name: '@alohdr',
     account_id: 12042712,
     nickname: 'Hendro Susilo',
     phoneNumber: '6281364475006',
   },
   {
-    display_name: 'zdrobbany',
+    display_name: '@zdrobbany',
     account_id: 5120760,
     nickname: 'Zaid Robbany',
     phoneNumber: '6287883300113',
   },
   {
-    display_name: 'teknikal1',
+    display_name: '@teknikal1',
     account_id: 21695238,
     type: 'general',
     nickname: 'Teknikal Kartala',
     phoneNumber: '6281320144088',
   },
   {
-    display_name: 'muhyasin89',
+    display_name: '@muhyasin89',
     account_id: 1536138,
     nickname: 'muhammad yasin',
     phoneNumber: '628111767305',
   },
   {
-    display_name: 'zakyalvan1',
+    display_name: '@zakyalvan1',
     account_id: 9833096,
     nickname: 'Zaky Alvan',
     phoneNumber: '6281320144088',

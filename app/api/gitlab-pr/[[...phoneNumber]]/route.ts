@@ -7,6 +7,7 @@ import {
 } from './route.constants';
 import {
   didCheckboxChangeToChecked,
+  getReviewerIds,
   getUserPhoneNumber,
   getUserPhoneNumberById,
 } from './route.helper';
@@ -33,19 +34,55 @@ const getNotes = async (projectId: number, projectName: string, mrId: number) =>
   `https://gitlab.com/api/v4/projects/${projectId}/merge_requests/${mrId}/notes`,
   {
     headers: {
-      'PRIVATE-TOKEN': projectName === 'test-project' ? GITLAB_TOKEN_TEST : GITLAB_TOKEN!,
+      'PRIVATE-TOKEN':
+          projectName === 'test-project' ? GITLAB_TOKEN_TEST : GITLAB_TOKEN!,
     },
+  },
+);
+
+const updateReviewer = async (
+  projectId: number,
+  projectName: string,
+  mrId: number,
+  reviewerIds: number[],
+) => fetch(
+  `https://gitlab.com/api/v4/projects/${encodeURIComponent(
+    projectId,
+  )}/merge_requests/${mrId}`,
+  {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'PRIVATE-TOKEN':
+          projectName === 'test-project' ? GITLAB_TOKEN_TEST : GITLAB_TOKEN!,
+    },
+    body: JSON.stringify({ reviewer_ids: reviewerIds }),
   },
 );
 
 const onCreatedPR = async (data: PullRequestGitlab) => {
   const {
+    project: { id: projectId = 0, name: projectName = '' } = {},
     repository: { name: repositoryName },
-    object_attributes: { iid: id, title, url: prLink },
+    object_attributes: {
+      iid: mrId,
+      title,
+      url: prLink,
+      description: mrDescription,
+      reviewer_ids: reviewerIds = [],
+    },
     reviewers = [],
     user: author,
   } = data || {};
-  const message = `🆕 *${repositoryName}* MR #${id} *created* by ${getUserPhoneNumber(
+  let revIds: number[] = [];
+  if (mrDescription && !reviewerIds.length) {
+    revIds = await getReviewerIds(mrDescription);
+    if (revIds.length > 0) {
+      await updateReviewer(projectId, projectName, mrId, revIds);
+    }
+  }
+
+  const message = `🆕 *${repositoryName}* MR #${mrId} *created* by ${getUserPhoneNumber(
     author,
   )}
  
@@ -54,14 +91,12 @@ const onCreatedPR = async (data: PullRequestGitlab) => {
 *Reviewers*: ${
   reviewers?.length > 0
     ? reviewers.map((reviewer) => getUserPhoneNumber(reviewer)).join(', ')
-    : 'None'
+    : revIds.map((revId) => getUserPhoneNumberById(revId)).join(', ')
 }`;
   await sendMessage(message);
 };
 
-const onApproval = async (
-  data: PullRequestGitlab,
-) => {
+const onApproval = async (data: PullRequestGitlab) => {
   const {
     repository: { name: repositoryName },
     object_attributes: {
@@ -85,9 +120,7 @@ const onApproval = async (
 *Url*: ${prLink}
 *Author*: ${getUserPhoneNumberById(authorId)}
 *Approval Status*: ${
-  reviewer
-    ? `${getUserPhoneNumber(reviewer)} ${emotion}`
-    : ''
+  reviewer ? `${getUserPhoneNumber(reviewer)} ${emotion}` : ''
 }
 *Comment Count*: ${commentCount}
 `;
@@ -196,7 +229,10 @@ export const POST = async (
       } = {},
     } = {},
   } = data || {};
-  const { action, iid: mrId } = objAttr || {};
+  const {
+    action,
+    iid: mrId,
+  } = objAttr || {};
   console.log('REQUEST DATA', data);
 
   if (description && previousDescription && currentDescription) {
