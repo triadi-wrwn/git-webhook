@@ -191,7 +191,6 @@ export const POST = async (
     } = {},
   } = data || {};
   const { action, iid: mrId } = objAttr || {};
-  console.log('EVENT', eventType, action);
   console.log('REQUEST DATA', data);
 
   if (description && previousDescription && currentDescription) {
@@ -202,6 +201,8 @@ export const POST = async (
     );
   }
 
+  console.log('IS REQUEST CHANGE', isRequestChanges);
+  console.log('SHOULD GET NOTES COUNT', isRequestChanges && projectId && mrId);
   if (isRequestChanges && projectId && mrId) {
     const gitlabResponse = await getNotes(projectId, mrId);
     console.log('GITLAB RESPONSE', gitlabResponse);
