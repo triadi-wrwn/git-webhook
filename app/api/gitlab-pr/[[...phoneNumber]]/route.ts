@@ -1,5 +1,6 @@
 import {
   GITLAB_TOKEN,
+  GITLAB_TOKEN_TEST,
   PHONE_TARGET,
   WA_TOKEN,
   WA_URL,
@@ -28,11 +29,11 @@ const sendMessage = async (message: string) => {
   });
 };
 
-const getNotes = async (projectId: number, mrId: number) => fetch(
+const getNotes = async (projectId: number, projectName: string, mrId: number) => fetch(
   `https://gitlab.com/api/v4/projects/${projectId}/merge_requests/${mrId}/notes`,
   {
     headers: {
-      'PRIVATE-TOKEN': GITLAB_TOKEN!,
+      'PRIVATE-TOKEN': projectName === 'test-project' ? GITLAB_TOKEN_TEST : GITLAB_TOKEN!,
     },
   },
 );
@@ -180,7 +181,7 @@ export const POST = async (
   const data = (await request.json()) as PullRequestGitlab;
   const eventType = request.headers.get('X-Gitlab-Event');
   const {
-    project: { id: projectId } = {},
+    project: { id: projectId, name: projectName = '' } = {},
     object_attributes: objAttr,
     changes: {
       description,
@@ -204,7 +205,7 @@ export const POST = async (
   console.log('IS REQUEST CHANGE', isRequestChanges);
   console.log('SHOULD GET NOTES COUNT', isRequestChanges && projectId && mrId);
   if (isRequestChanges && projectId && mrId) {
-    const gitlabResponse = await getNotes(projectId, mrId);
+    const gitlabResponse = await getNotes(projectId, projectName, mrId);
     console.log('GITLAB RESPONSE', gitlabResponse);
     const notes: GitlabNote[] = await gitlabResponse.json();
 
