@@ -1,31 +1,17 @@
 import {
   GITLAB_TOKEN,
-  PHONE_TARGET, USER_MAP_LIST,
+  PHONE_TARGET,
   WA_TOKEN,
   WA_URL,
 } from './route.constants';
-import type {
-  GitlabNote, PullRequestGitlab, User,
-} from './route.types';
+import {
+  didCheckboxChangeToChecked,
+  getUserPhoneNumber,
+  getUserPhoneNumberById,
+} from './route.helper';
+import type { GitlabNote, PullRequestGitlab } from './route.types';
 
 let phoneNumber = '';
-
-const getUserPhoneNumber = (data: User) => {
-  const { id: accountId, name: displayName } = data || {};
-  const foundUser = USER_MAP_LIST.find((el) => el.account_id === accountId);
-  if (foundUser?.type === 'general') {
-    return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber} (${foundUser.nickname})` : (foundUser?.nickname || '');
-  }
-  return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber}` : foundUser?.nickname || displayName;
-};
-
-const getUserPhoneNumberById = (userId: number) => {
-  const foundUser = USER_MAP_LIST.find((el) => el.account_id === userId);
-  if (foundUser?.type === 'general') {
-    return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber} (${foundUser.nickname})` : (foundUser?.nickname || '');
-  }
-  return foundUser && foundUser.phoneNumber ? `@${foundUser.phoneNumber}` : (foundUser?.nickname || '');
-};
 
 const sendMessage = async (message: string) => {
   const formData = new FormData();
@@ -40,60 +26,43 @@ const sendMessage = async (message: string) => {
   });
 };
 
-const getNotes = async (projectId: number, mrId: number) => fetch(`https://gitlab.com/api/v4/projects/${projectId}/merge_requests/${mrId}/notes`, {
-  headers: {
-    'PRIVATE-TOKEN': GITLAB_TOKEN!,
+const getNotes = async (projectId: number, mrId: number) => fetch(
+  `https://gitlab.com/api/v4/projects/${projectId}/merge_requests/${mrId}/notes`,
+  {
+    headers: {
+      'PRIVATE-TOKEN': GITLAB_TOKEN!,
+    },
   },
-});
+);
 
 const onCreatedPR = async (data: PullRequestGitlab) => {
   const {
-    repository: {
-      name: repositoryName,
-    },
-    object_attributes: {
-      iid: id,
-      title,
-      url: prLink,
-    },
+    repository: { name: repositoryName },
+    object_attributes: { iid: id, title, url: prLink },
     reviewers = [],
     user: author,
   } = data || {};
-  const message = `🆕 *${repositoryName}* MR #${id} *created* by ${getUserPhoneNumber(author)}
+  const message = `🆕 *${repositoryName}* MR #${id} *created* by ${getUserPhoneNumber(
+    author,
+  )}
  
 *Title*: ${title}
 *Url*: ${prLink}
-*Reviewers*: ${reviewers?.length > 0 ? reviewers.map((reviewer) => getUserPhoneNumber(reviewer)).join(', ') : 'None'}`;
+*Reviewers*: ${
+  reviewers?.length > 0
+    ? reviewers.map((reviewer) => getUserPhoneNumber(reviewer)).join(', ')
+    : 'None'
+}`;
   await sendMessage(message);
 };
 
-const onUpdatedPR = async (data: PullRequestGitlab) => {
+const onApproval = async (
+  data: PullRequestGitlab,
+  requestChanges?: boolean,
+  commentCount?: number,
+) => {
   const {
-    repository: {
-      name: repositoryName,
-    },
-    object_attributes: {
-      iid: id,
-      title,
-      url: prLink,
-      author_id: authorId,
-    },
-    reviewers = [],
-  } = data || {};
-  const message = `🆕 *${repositoryName}* MR #${id} updated
- 
-*Title*: ${title}
-*Url*: ${prLink}
-*Author*: ${getUserPhoneNumberById(authorId)}
-*Reviewers*: ${reviewers.length > 0 ? reviewers.map((reviewer) => getUserPhoneNumber(reviewer)).join(', ') : '-'}`;
-  await sendMessage(message);
-};
-
-const onApproval = async (data: PullRequestGitlab) => {
-  const {
-    repository: {
-      name: repositoryName,
-    },
+    repository: { name: repositoryName },
     object_attributes: {
       iid: id,
       title,
@@ -103,32 +72,87 @@ const onApproval = async (data: PullRequestGitlab) => {
     },
     user: reviewer,
   } = data || {};
-  const isApproved = action === 'approved' || action === 'approval';
+  const isApproved = !requestChanges && (action === 'approved' || action === 'approval');
   const message = `✍🏻 *${repositoryName}* MR #${id} *approval* status update
 
 *Title*: ${title}
 *Url*: ${prLink}
 *Author*: ${getUserPhoneNumberById(authorId)}
-*Approval Status*: ${reviewer ? `${getUserPhoneNumber(reviewer)}${isApproved ? ' ✅' : ' ⛔'}` : ''}
+*Approval Status*: ${
+  reviewer
+    ? `${getUserPhoneNumber(reviewer)}${isApproved ? ' ✅' : ' ⛔ Need Changes'}`
+    : ''
+}
+*Comment Count*: ${commentCount}
 `;
   await sendMessage(message);
 };
+
+const onUpdatedPR = async (data: PullRequestGitlab) => {
+  const {
+    project: { id: projectId },
+    repository: { name: repositoryName },
+    object_attributes: {
+      iid: id, title, url: prLink, author_id: authorId,
+    },
+    reviewers = [],
+    changes: {
+      description,
+      description: {
+        previous: previousDescription,
+        current: currentDescription,
+      },
+    },
+  } = data || {};
+
+  let isRequestChanges = false;
+  if (description && previousDescription && currentDescription) {
+    isRequestChanges = didCheckboxChangeToChecked(
+      previousDescription,
+      currentDescription,
+      'Request changes',
+    );
+  }
+
+  if (isRequestChanges) {
+    const gitlabResponse = await getNotes(projectId, id);
+    console.log('GITLAB RESPONSE', gitlabResponse);
+    const notes: GitlabNote[] = await gitlabResponse.json();
+
+    if (!Array.isArray(notes)) throw new Error('Unexpected GitLab API response');
+
+    // Filter only real user comments
+    const userComments = notes.filter((el) => el.system === false);
+    console.log('COMMENTS FROM REVIEWER', userComments);
+    const commentCount = userComments.length;
+    console.log('COMMENT COUNT', commentCount);
+    await onApproval(data, isRequestChanges, commentCount);
+    return;
+  }
+
+  const message = `🆕 *${repositoryName}* MR #${id} updated
+ 
+*Title*: ${title}
+*Url*: ${prLink}
+*Author*: ${getUserPhoneNumberById(authorId)}
+*Reviewers*: ${
+  reviewers.length > 0
+    ? reviewers.map((reviewer) => getUserPhoneNumber(reviewer)).join(', ')
+    : '-'
+}`;
+
+  await sendMessage(message);
+};
+
 let timeoutId: NodeJS.Timeout | undefined;
 
 const onComment = async (data: PullRequestGitlab) => {
   const {
-    repository: {
-      name: repositoryName,
-    },
+    repository: { name: repositoryName },
     merge_request: {
-      iid: id,
-      title,
-      author_id: authorId,
-      url: prLink,
+      iid: id, title, author_id: authorId, url: prLink,
     },
-    project: {
-      id: projectId,
-    },
+    project: { id: projectId },
     user,
   } = data || {};
   console.log('DECONTRUCTING DATA');
@@ -142,7 +166,9 @@ const onComment = async (data: PullRequestGitlab) => {
     if (!Array.isArray(notes)) throw new Error('Unexpected GitLab API response');
 
     // Filter only real user comments
-    const userComments = notes.filter((el) => el.system === false && el.author?.id === user?.id);
+    const userComments = notes.filter(
+      (el) => el.system === false && el.author?.id === user?.id,
+    );
     console.log('COMMENTS FROM REVIEWER', userComments);
     const commentCount = userComments.length;
 
@@ -162,18 +188,15 @@ const onComment = async (data: PullRequestGitlab) => {
 
 const onMergedPR = async (data: PullRequestGitlab) => {
   const {
-    repository: {
-      name: repositoryName,
-    },
+    repository: { name: repositoryName },
     object_attributes: {
-      iid: id,
-      title,
-      url: prLink,
-      author_id: authorId,
+      iid: id, title, url: prLink, author_id: authorId,
     },
     user: actor,
   } = data || {};
-  const message = `🚀 *${repositoryName}* MR #${id} *merged* by ${getUserPhoneNumber(actor)}
+  const message = `🚀 *${repositoryName}* MR #${id} *merged* by ${getUserPhoneNumber(
+    actor,
+  )}
  
 *Title*: ${title}
 *Url*: ${prLink}
@@ -181,10 +204,13 @@ const onMergedPR = async (data: PullRequestGitlab) => {
   await sendMessage(message);
 };
 
-export const POST = async (request: Request, { params }: { params: { phoneNumber: string } }) => {
+export const POST = async (
+  request: Request,
+  { params }: { params: { phoneNumber: string } },
+) => {
   const { phoneNumber: paramPhoneNumber = '' } = params || {};
   phoneNumber = paramPhoneNumber;
-  const data = await request.json() as PullRequestGitlab;
+  const data = (await request.json()) as PullRequestGitlab;
   const eventType = request.headers.get('X-Gitlab-Event');
   const { object_attributes: objAttr } = data || {};
   const { action } = objAttr || {};
