@@ -133,8 +133,13 @@ const onUpdatedPR = async (data: PullRequestGitlab) => {
     object_attributes: {
       iid: id, title, url: prLink, author_id: authorId,
     },
+    changes: { updated_at: { previous: prevUpdatedAt, current: currentUpdatedAt } = {} } = {},
     reviewers = [],
   } = data || {};
+
+  if (prevUpdatedAt && currentUpdatedAt && prevUpdatedAt === currentUpdatedAt) {
+    return;
+  }
 
   const message = `🆙 *${repositoryName}* MR #${id} updated
  
