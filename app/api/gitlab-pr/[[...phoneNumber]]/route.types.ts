@@ -194,6 +194,10 @@ export type Changes = {
   last_edited_by_id: TedByID;
   updated_at: Description;
   updated_by_id: TedByID;
+  reviewers: {
+    previous: User[];
+    current: User[];
+  }
 };
 
 export type Description = {
