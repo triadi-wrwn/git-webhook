@@ -64,4 +64,16 @@ export const USER_MAP_LIST = [
     nickname: 'Zaky Alvan',
     phoneNumber: '6281320144088',
   },
+  {
+    display_name: '@ulungprayitno',
+    account_id: 1464731,
+    nickname: 'Ulung Prayitno',
+    phoneNumber: '6285697955565',
+  },
+  {
+    display_name: '@0xabdu',
+    account_id: 27891079,
+    nickname: 'Aldi Abdu Malik',
+    phoneNumber: '6289622142528',
+  },
 ];
