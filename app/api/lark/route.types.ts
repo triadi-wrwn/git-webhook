@@ -4,4 +4,4 @@ export type LarkRequest = {
   assignee: string;
   status: string;
   url: string;
-}
+};
