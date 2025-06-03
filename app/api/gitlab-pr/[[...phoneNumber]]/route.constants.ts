@@ -76,4 +76,10 @@ export const USER_MAP_LIST = [
     nickname: 'Aldi Abdu Malik',
     phoneNumber: '6289622142528',
   },
+  {
+    display_name: '@krisnarusdiono',
+    account_id: 11682855,
+    nickname: 'Krisna Rusdiono',
+    phoneNumber: '6282116917200',
+  },
 ];
