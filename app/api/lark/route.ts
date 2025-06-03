@@ -18,11 +18,11 @@ const sendMessage = async (message: string) => {
 };
 
 const onRevision = async (data: LarkRequest) => {
-  const { 
+  const {
     taskName,
     assignee,
     status,
-    url 
+    url,
   } = data || {};
   const phonetag = getUserPhoneNumberByUsername(assignee);
   const message = `✍🏻 *Lark status update*
@@ -39,7 +39,7 @@ Tolong dicek ya bang ${phonetag}
 
 export const POST = async (
   request: Request,
-  { params }: { params: { phoneNumber: string } }
+  { params }: { params: { phoneNumber: string } },
 ) => {
   const { phoneNumber: paramPhoneNumber = '' } = params || {};
   phoneNumber = paramPhoneNumber;
