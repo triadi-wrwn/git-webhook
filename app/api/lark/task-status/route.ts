@@ -52,8 +52,14 @@ export const POST = async (
   const data = (await request.json()) as LarkRequest;
   
   console.log('REQUEST DATA', data);
-
-  await onRevision(data);
+  const { event } = data || {}; 
+  switch (event) {
+    case 'update-task-status':
+      await onRevision(data);
+      break;
+    default:
+      break;
+  }
 
   return new Response();
 };
