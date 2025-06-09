@@ -45,12 +45,26 @@ export const POST = async (
 ) => {
   const { phoneNumber: paramPhoneNumber = '' } = params || {};
   phoneNumber = paramPhoneNumber;
-  const data = (await request.json()) as LarkRequest;
+  const rawBody = await request.text();
+
+  // Optional: sanitize control characters
+  // eslint-disable-next-line no-control-regex
+  const sanitized = rawBody.replace(/[\u0000-\u001F]+/g, '');
+
+  // Then try parsing
+  let data;
+  try {
+    data = JSON.parse(sanitized);
+  } catch (err) {
+    console.error('Still invalid JSON:', err);
+  }
+
+  // const data = (await request.json()) as LarkRequest;
   console.log('REQUEST DATA', data);
   const { event } = data || {};
   switch (event) {
     case 'update-task-status':
-      await onRevision(data);
+      await onRevision(data as LarkRequest);
       break;
     default:
       break;
