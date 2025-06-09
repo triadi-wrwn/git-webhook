@@ -242,6 +242,9 @@ export const POST = async (
   } = objAttr || {};
   console.log('REQUEST DATA', data);
 
+  const approvalActions = ['unapproved', 'unapproval', 'approval', 'approved'];
+  const isApproval = approvalActions.includes(action);
+
   if (description && previousDescription && currentDescription) {
     isRequestChanges = didCheckboxChangeToChecked(
       previousDescription,
@@ -252,7 +255,7 @@ export const POST = async (
 
   console.log('IS REQUEST CHANGE', isRequestChanges);
   console.log('SHOULD GET NOTES COUNT', isRequestChanges && projectId && mrId);
-  if (isRequestChanges && projectId && mrId) {
+  if ((isRequestChanges || isApproval) && projectId && mrId) {
     const gitlabResponse = await getNotes(projectId, projectName, mrId);
     console.log('GITLAB RESPONSE', gitlabResponse);
     const notes: GitlabNote[] = await gitlabResponse.json();
