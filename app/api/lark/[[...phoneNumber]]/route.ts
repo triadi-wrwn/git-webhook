@@ -1,6 +1,6 @@
 import { PHONE_TARGET, WA_TOKEN, WA_URL } from './route.constants';
 import { getUserPhoneNumberByUsername } from './route.helper';
-import { LarkRequest } from './route.types';
+import type { LarkRequest } from './route.types';
 
 let phoneNumber = '';
 
@@ -23,6 +23,7 @@ const onRevision = async (data: LarkRequest) => {
     assignee,
     status,
     url,
+    qaNotes,
   } = data || {};
   const phonetag = getUserPhoneNumberByUsername(assignee);
   const message = `✍🏻 *Lark status update*
@@ -31,6 +32,7 @@ const onRevision = async (data: LarkRequest) => {
 *Assignee*: ${assignee}
 *Status*: ${status}
 *Url*: ${url}
+*QA Notes*: ${qaNotes}
 
 Tolong dicek ya bang ${phonetag}
 `;
