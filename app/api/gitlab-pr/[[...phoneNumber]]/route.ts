@@ -300,13 +300,5 @@ export const POST = async (
     }
   }
 
-  // if (eventType === 'Note Hook') {
-  //   clearTimeout(timeoutId);
-  //   timeoutId = setTimeout(async () => {
-  //     console.log('NOTE HOOK', data);
-  //     await onComment(data);
-  //   }, 3000);
-  // }
-
   return new Response();
 };
