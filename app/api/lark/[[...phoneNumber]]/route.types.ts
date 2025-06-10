@@ -5,4 +5,5 @@ export type LarkRequest = {
   status: string;
   url: string;
   qaNotes: string;
+  jamDevLink: string;
 };
