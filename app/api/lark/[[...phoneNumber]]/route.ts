@@ -32,9 +32,9 @@ const onRevision = async (data: LarkRequest) => {
 *Task*: ${taskName}
 *Assignee*: ${assignee}
 *Status*: ${status}
-*Url*: ${url}
-*Jam Dev Link*: ${jamDevLink}
+*Task Url*: ${url}
 *QA Notes*: ${qaNotes}
+*Jam Dev Link*: ${jamDevLink}
 
 Tolong dicek ya bang ${phonetag}
 `;
