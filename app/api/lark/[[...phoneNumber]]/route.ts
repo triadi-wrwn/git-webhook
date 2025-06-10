@@ -24,6 +24,7 @@ const onRevision = async (data: LarkRequest) => {
     status,
     url,
     qaNotes,
+    jamDevLink,
   } = data || {};
   const phonetag = getUserPhoneNumberByUsername(assignee);
   const message = `✍🏻 *Lark status update*
@@ -32,6 +33,7 @@ const onRevision = async (data: LarkRequest) => {
 *Assignee*: ${assignee}
 *Status*: ${status}
 *Url*: ${url}
+*Jam Dev Link*: ${jamDevLink}
 *QA Notes*: ${qaNotes}
 
 Tolong dicek ya bang ${phonetag}
