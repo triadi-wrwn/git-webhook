@@ -263,7 +263,7 @@ export const POST = async (
     if (!Array.isArray(notes)) throw new Error('Unexpected GitLab API response');
 
     // Filter only real user comments
-    const userComments = notes.filter((el) => el.system === false);
+    const userComments = notes.filter((el) => el.system === false && !el.body.includes('https://vercel.link'));
     console.log('COMMENTS FROM REVIEWER', userComments);
     commentCount = userComments.length;
     console.log('COMMENT COUNT', commentCount);
