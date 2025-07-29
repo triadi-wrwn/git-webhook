@@ -72,6 +72,16 @@ export const USER_MAP_LIST: User[] = [
     phoneNumber: '6282116917200',
     projectIds: ['crm-bag'],
   },
+  {
+    name: '@nach9',
+    phoneNumber: '6281288802981',
+    projectIds: ['crm-shiptracking'],
+  },
+  {
+    name: '4damrr',
+    phoneNumber: '6285748642623',
+    projectIds: ['crm-shiptracking'],
+  },
 ];
 
 export const PROJECTS_IDS = {
@@ -84,6 +94,7 @@ export const PROJECTS = [
   {
     id: PROJECTS_IDS.CRM_SHIPTRACKING,
     name: 'CRM Ship Tracking',
+    time: '10.00',
     dcRoomId: 'shiptracking-voice-room',
   },
 ];

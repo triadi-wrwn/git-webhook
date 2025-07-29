@@ -82,4 +82,16 @@ export const USER_MAP_LIST = [
     nickname: 'Krisna Rusdiono',
     phoneNumber: '6282116917200',
   },
+  {
+    display_name: '@nach9',
+    account_id: 2726363,
+    nickname: 'Nur Achdiansyah',
+    phoneNumber: '6281288802981',
+  },
+  {
+    display_name: '4damrr',
+    account_id: 20349870,
+    nickname: 'Adam Raihan Ramadhani',
+    phoneNumber: '6285748642623',
+  },
 ];

@@ -25,11 +25,11 @@ const sendMessage = async (message: string) => {
 };
 
 const sendReminder = async (projectId: ProjectType) => {
-  const { name, dcRoomId } = getProjectDetail(projectId) || {};
+  const { name, dcRoomId, time } = getProjectDetail(projectId) || {};
   const message = `👋 Hi, reminder friendly ya!
 
-📅 Daily Stand-Up ${name}
-🕙 Hari ini jam 10.00 WIB
+Daily Stand-Up ${name}
+🕙 Hari ini jam ${time} WIB
 📍 Discord → ${dcRoomId}
 🗒️ Durasi ±15 menit
 
