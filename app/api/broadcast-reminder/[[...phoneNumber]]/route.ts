@@ -43,8 +43,11 @@ ${getProjectMembers(projectId)}`;
 const sendDailyReportReminder = async (projectId: ProjectType) => {
   const message = `👋 Hi, jangan lupa isi daily report ya gais!
 
-Internal Kartala  👉  https://shorturl.at/WFFSx 
-Eksternal  👉  https://shorturl.at/UojMk 
+Internal Kartala 👇
+https://oa.larksuite.com/report/record/detail?ruleId=6955470096391208979&routeFrom=/record/list
+
+Eksternal👇
+https://s4rxiq4hw7r.sg.larksuite.com/share/base/form/shrlgGFQnSM3daM4KDwMazV3JYd
 
 Thank youu! 
 
