@@ -46,7 +46,7 @@ const sendDailyReportReminder = async (projectId: ProjectType) => {
 Internal Kartala 👇
 https://oa.larksuite.com/report/record/detail?ruleId=6955470096391208979&routeFrom=/record/list
 
-Eksternal👇
+Eksternal 👇
 https://s4rxiq4hw7r.sg.larksuite.com/share/base/form/shrlgGFQnSM3daM4KDwMazV3JYd
 
 Thank youu! 
