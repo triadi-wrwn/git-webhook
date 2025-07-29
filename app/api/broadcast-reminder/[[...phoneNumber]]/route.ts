@@ -43,8 +43,8 @@ ${getProjectMembers(projectId)}`;
 const sendDailyReportReminder = async (projectId: ProjectType) => {
   const message = `👋 Hi, jangan lupa isi daily report ya gais!
 
-Internal 👉 https://shorturl.at/WFFSx
-Eksternal 👉 https://shorturl.at/UojMk
+Internal Kartala  👉  https://shorturl.at/WFFSx 
+Eksternal  👉  https://shorturl.at/UojMk 
 
 Thank youu! 
 
