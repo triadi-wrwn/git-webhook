@@ -24,7 +24,7 @@ const sendMessage = async (message: string) => {
   });
 };
 
-const sendReminder = async (projectId: ProjectType) => {
+const sendDailyStandupReminder = async (projectId: ProjectType) => {
   const { name, dcRoomId, time } = getProjectDetail(projectId) || {};
   const message = `👋 Hi, reminder friendly ya!
 
@@ -40,17 +40,38 @@ ${getProjectMembers(projectId)}`;
   await sendMessage(message);
 };
 
+const sendDailyReportReminder = async (projectId: ProjectType) => {
+  const message = `👋 Hi, jangan lupa isi daily report ya gais!
+
+Internal 👉 https://shorturl.at/WFFSx
+Eksternal 👉 https://shorturl.at/UojMk
+
+Thank youu! 
+
+${getProjectMembers(projectId)}`;
+  await sendMessage(message);
+};
+
 export const POST = async (
   request: Request,
   { params }: { params: { phoneNumber: string } },
 ) => {
   const data = (await request.json()) as ReminderPayload;
   console.log('REMINDER FOR: ', data);
-  const { projectId } = data || {};
+  const { projectId, type } = data || {};
   const { phoneNumber: paramPhoneNumber = '' } = params || {};
   phoneNumber = paramPhoneNumber;
   if (phoneNumber) {
-    await sendReminder(projectId);
+    switch (type) {
+      case 'daily-standup':
+        await sendDailyStandupReminder(projectId);
+        break;
+      case 'daily-report':
+        await sendDailyReportReminder(projectId);
+        break;
+      default:
+        break;
+    }
   }
 
   return new Response();

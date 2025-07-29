@@ -10,4 +10,5 @@ export type User = {
 
 export type ReminderPayload = {
   projectId: ProjectType;
+  type: 'daily-standup' | 'daily-report'
 };
