@@ -94,4 +94,16 @@ export const USER_MAP_LIST = [
     nickname: 'Adam Raihan Ramadhani',
     phoneNumber: '6285748642623',
   },
+  {
+    display_name: '@putramaghfirah',
+    account_id: 29727549,
+    nickname: 'Putra Maghfirah',
+    phoneNumber: '6282273297050',
+  },
+  {
+    display_name: '@nekonako',
+    account_id: 9012607,
+    nickname: 'Galih Wisnuaji',
+    phoneNumber: '6285150733512',
+  },
 ];

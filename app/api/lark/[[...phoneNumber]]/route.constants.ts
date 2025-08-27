@@ -63,4 +63,16 @@ export const USER_MAP_LIST = [
     display_name: 'Bella',
     phoneNumber: '6285257906656',
   },
+  {
+    display_name: 'Putra Maghfirah',
+    phoneNumber: '6282273297050',
+  },
+  {
+    display_name: 'Galih Wisnuaji',
+    phoneNumber: '6285150733512',
+  },
+  {
+    display_name: 'Bisma Ridho Pambudi',
+    phoneNumber: '6282256120375',
+  },
 ];
